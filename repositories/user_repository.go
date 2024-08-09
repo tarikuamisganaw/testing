@@ -1,0 +1,56 @@
+// Repositories/user_repository.go
+package repositories
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"clean-architecture/domain"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type UserRepository interface {
+	Register(user domain.User) (domain.User, error)
+	FindByUsername(username string) (domain.User, error)
+}
+
+type userRepository struct {
+	collection *mongo.Collection
+}
+
+func NewUserRepository(db *mongo.Database) UserRepository {
+	return &userRepository{
+		collection: db.Collection("users"),
+	}
+}
+
+func (ur *userRepository) Register(user domain.User) (domain.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := ur.collection.InsertOne(ctx, user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (ur *userRepository) FindByUsername(username string) (domain.User, error) {
+	var user domain.User
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := ur.collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return user, errors.New("invalid username or password")
+		}
+		return user, err
+	}
+
+	return user, nil
+}
