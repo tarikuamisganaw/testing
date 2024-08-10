@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +29,37 @@ func AuthMiddleware(jwtSvc JWTService) gin.HandlerFunc {
 		_, err := jwtSvc.ValidateJWT(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// AdminMiddleware ensures that the user has an admin role
+func AdminMiddleware(jwtService JWTService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("Authorization")
+
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
+			c.Abort()
+			return
+		}
+
+		token, err := jwtService.ValidateJWT(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+
+		claims := token.Claims.(jwt.MapClaims)
+		role := claims["role"].(string)
+
+		if role != "admin" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to access this resource"})
 			c.Abort()
 			return
 		}

@@ -120,3 +120,13 @@ func (uc *UserController) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
+
+// GetUsers retrieves all users
+func (uc *UserController) GetUsers(c *gin.Context) {
+	users, err := uc.userUsecase.GetUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}

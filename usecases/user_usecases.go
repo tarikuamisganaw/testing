@@ -11,6 +11,7 @@ import (
 type UserUsecase interface {
 	Register(user domain.User) (domain.User, error)
 	Login(username, password string) (string, error)
+	GetUsers() ([]domain.User, error)
 }
 
 type userUsecase struct {
@@ -25,6 +26,11 @@ func NewUserUsecase(ur repositories.UserRepository, ps infrastructure.PasswordSe
 		passwordSvc: ps,
 		jwtSvc:      js,
 	}
+}
+
+// GetUsers retrieves all users from the repository
+func (uc *userUsecase) GetUsers() ([]domain.User, error) {
+	return uc.userRepo.GetUsers()
 }
 
 // Register registers a new user

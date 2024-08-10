@@ -15,6 +15,7 @@ import (
 type UserRepository interface {
 	Register(user domain.User) (domain.User, error)
 	FindByUsername(username string) (domain.User, error)
+	GetUsers() ([]domain.User, error)
 }
 
 type userRepository struct {
@@ -53,4 +54,31 @@ func (ur *userRepository) FindByUsername(username string) (domain.User, error) {
 	}
 
 	return user, nil
+}
+
+func (ur *userRepository) GetUsers() ([]domain.User, error) {
+	var users []domain.User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := ur.collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var user domain.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

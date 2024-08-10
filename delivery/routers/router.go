@@ -11,6 +11,7 @@ import (
 func InitRoutes(r *gin.Engine, taskUsecase usecases.TaskUsecase, userUsecase usecases.UserUsecase, jwtService infrastructure.JWTService) {
 	taskController := controllers.NewTaskController(taskUsecase)
 	userController := controllers.NewUserController(userUsecase)
+	adminMiddleware := infrastructure.AdminMiddleware(jwtService)
 
 	r.POST("/register", userController.Register)
 	r.POST("/login", userController.Login)
@@ -23,5 +24,6 @@ func InitRoutes(r *gin.Engine, taskUsecase usecases.TaskUsecase, userUsecase use
 		auth.POST("/tasks", taskController.CreateTask)
 		auth.PUT("/tasks/:id", taskController.UpdateTask)
 		auth.DELETE("/tasks/:id", taskController.DeleteTask)
+		auth.GET("/users", adminMiddleware, userController.GetUsers)
 	}
 }
