@@ -1,4 +1,3 @@
-// Usecases/user_usecases.go
 package usecases
 
 import (

@@ -1,4 +1,3 @@
-// mocks/password_service_mock.go
 package mocks
 
 import (

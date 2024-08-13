@@ -1,4 +1,3 @@
-// mocks/user_repository_mock.go
 package mocks
 
 import (

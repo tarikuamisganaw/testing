@@ -1,4 +1,3 @@
-// mocks/user_usecase_mock.go
 package mocks
 
 import (

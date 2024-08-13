@@ -1,4 +1,3 @@
-// mocks/controller_mock.go
 package mocks
 
 import (

@@ -1,4 +1,3 @@
-// repositories/user_repository_test.go
 package repositories
 
 import (
