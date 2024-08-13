@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -18,11 +19,13 @@ func TestUserController_Register(t *testing.T) {
 	mockUserUsecase := new(mocks.UserUsecaseMock)
 	userController := NewUserController(mockUserUsecase)
 
-	objectID := primitive.NewObjectID() // Generate a new ObjectID
-	user := domain.User{ID: objectID, Username: "testuser", Password: "password"}
-	registeredUser := user
+	objectID := primitive.NewObjectID()                                                     // Generate a new ObjectID
+	user := domain.User{Username: "testuser", Password: "password"}                         // Only specify the fields present in the request body
+	registeredUser := domain.User{ID: objectID, Username: "testuser", Password: "password"} // Include ID in the expected response
 
-	mockUserUsecase.On("Register", user).Return(registeredUser, nil)
+	mockUserUsecase.On("Register", mock.MatchedBy(func(u domain.User) bool {
+		return u.Username == user.Username && u.Password == user.Password
+	})).Return(registeredUser, nil)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -114,10 +117,13 @@ func TestTaskController_CreateTask(t *testing.T) {
 	taskController := NewTaskController(mockTaskUsecase)
 
 	objectID := primitive.NewObjectID() // Generate a new ObjectID
-	task := domain.Task{ID: objectID, Title: "New Task"}
-	createdTask := task
 
-	mockTaskUsecase.On("CreateTask", task).Return(createdTask, nil)
+	task := domain.Task{Title: "New Task"}                      // Only specify the Title
+	createdTask := domain.Task{ID: objectID, Title: "New Task"} // The expected task with the ID set
+
+	mockTaskUsecase.On("CreateTask", mock.MatchedBy(func(t domain.Task) bool {
+		return t.Title == task.Title
+	})).Return(createdTask, nil)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
